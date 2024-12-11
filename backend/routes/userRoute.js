@@ -46,4 +46,33 @@ router.post("/signup", async (req, res) => {
   }
 });
 
+// login
+router.post("/login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ error: "Please fill all the fields" });
+    }
+
+    const currentUser = await user.findOne({ username: username });
+    if (!currentUser) {
+      // Log the specific error server-side but return generic message
+      console.log(`Login failed: username ${username} not found`);
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    const passwordMatch = await bcrypt.compare(password, currentUser.password);
+    if (!passwordMatch) {
+      // Log the specific error server-side but return generic message
+      console.log(`Login failed: incorrect password for user ${username}`);
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    res.status(200).json({ message: "Login successful" });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: "An error occurred during login" });
+  }
+});
+
 module.exports = router;
